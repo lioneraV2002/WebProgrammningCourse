@@ -1,68 +1,96 @@
-class FormulaHandler {
-    constructor() {
-        this.inputSets = [
-            { fee: 'fee1', discount: 'discount1', count: 'count1' },
-            { fee: 'fee2', discount: 'discount2', count: 'count2' },
-            { fee: 'fee3', discount: 'discount3', count: 'count3' }
-        ].map(set => ({
-            fee: document.getElementById(set.fee),
-            discount: document.getElementById(set.discount),
-            count: document.getElementById(set.count)
-        }));
-        this.formulas = document.getElementsByTagName('formula');
-        this.validFormulaBase = 'fee*count-discount'; // Base formula without spaces
-        this.initCustomTag();
-        this.addEventListeners();
+class FormulaCalculator {
+    constructor(containerId, sections) {
+        this.container = document.getElementById(containerId);
+        this.sections = sections;
+        this.validFormulaBase = 'fee*count-discount';
+        this.init();
     }
 
-    initCustomTag() {
-        for (let formula of this.formulas) {
-            const placeholder = formula.getAttribute('placeholder') || 'Result';
-            formula.textContent = placeholder;
-            const span = document.createElement('span');
-            span.className = 'result';
-            formula.appendChild(span);
-            this.updateFormula(formula);
-        }
-    }
-
-    addEventListeners() {
-        this.inputSets.forEach((set, index) => {
-            for (let input in set) {
-                set[input].addEventListener('input', () => {
-                    this.updateFormula(this.formulas[index]);
-                });
-            }
+    init() {
+        this.sections.forEach((section, index) => {
+            this.createSection(section, index);
         });
     }
 
-    updateFormula(formula) {
-        const expr = formula.getAttribute('evaluator');
-        const resultSpan = formula.querySelector('.result');
-        const index = Array.from(this.formulas).indexOf(formula);
-        const inputs = this.inputSets[index];
+    createSection(section, index) {
+        const sectionElement = document.createElement('div');
+        sectionElement.className = 'section';
+
+        // Section Title
+        const title = document.createElement('div');
+        title.className = 'section-title';
+        title.textContent = section.title;
+        sectionElement.appendChild(title);
+
+        // Input Fields
+        const inputFields = ['fee', 'discount', 'count'];
+        inputFields.forEach(field => {
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-control';
+            input.id = `${field}${index + 1}`;
+            input.placeholder = field.charAt(0).toUpperCase() + field.slice(1);
+
+            formGroup.appendChild(input);
+            sectionElement.appendChild(formGroup);
+        });
+
+        // Formula Element
+        const formulaElement = document.createElement('formula');
+        formulaElement.setAttribute('evaluator', section.formula);
+        formulaElement.setAttribute('placeholder', section.formulaPlaceholder);
+        formulaElement.textContent = section.formulaPlaceholder;
+
+        const resultSpan = document.createElement('span');
+        resultSpan.className = 'result';
+        formulaElement.appendChild(resultSpan);
+
+        sectionElement.appendChild(formulaElement);
+        this.container.appendChild(sectionElement);
+
+        // Add Event Listeners
+        this.addEventListeners(index);
+    }
+
+    addEventListeners(index) {
+        const inputs = {
+            fee: document.getElementById(`fee${index + 1}`),
+            discount: document.getElementById(`discount${index + 1}`),
+            count: document.getElementById(`count${index + 1}`)
+        };
+
+        const formulaElement = this.container.querySelectorAll('formula')[index];
+
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('input', () => {
+                this.updateFormula(formulaElement, inputs);
+            });
+        });
+    }
+
+    updateFormula(formulaElement, inputs) {
+        const expr = formulaElement.getAttribute('evaluator');
+        const resultSpan = formulaElement.querySelector('.result');
+
         try {
-            // Normalize formula by removing all spaces
             const normalizedExpr = expr.replace(/\s+/g, '');
-            // Check if normalized formula matches the valid base
             if (normalizedExpr !== this.validFormulaBase) {
                 throw new Error('Invalid formula');
             }
-            // Check for invalid IDs
-            const idsInFormula = normalizedExpr.match(/[a-z]+/gi) || [];
-            const validIds = Object.keys(inputs);
-            const hasInvalidId = idsInFormula.some(id => !validIds.includes(id));
-            if (hasInvalidId) {
-                throw new Error('Invalid ID in formula');
-            }
+
             const values = {
                 fee: this.parseInput(inputs.fee.value),
                 discount: this.parseInput(inputs.discount.value),
                 count: this.parseInput(inputs.count.value)
             };
+
             if (Object.values(values).some(val => isNaN(val))) {
                 throw new Error('Invalid input');
             }
+
             const safeExpr = normalizedExpr.replace(/(fee|discount|count)/g, match => values[match]);
             const result = eval(safeExpr);
             resultSpan.textContent = Number.isFinite(result) ? result : 'Invalid Formula';
@@ -72,14 +100,24 @@ class FormulaHandler {
     }
 
     parseInput(value) {
-        // Check if the input is only spaces (or empty after trimming)
         const trimmedValue = value.trim();
         if (trimmedValue === '') {
-            return NaN; // Treat as invalid input
+            return NaN;
         }
         const num = Number(trimmedValue);
         return isNaN(num) ? NaN : num;
     }
 }
 
-new FormulaHandler();
+// Configuration for Sections
+const sections = [
+    {
+        title: 'Total Cost with Flat Discount (Set 1)',
+        formula: 'fee * count - discount',
+        formulaPlaceholder: 'fee * count - discount'
+    },
+    // Add more sections as needed
+];
+
+// Initialize the Calculator
+new FormulaCalculator('calculator-container', sections);
