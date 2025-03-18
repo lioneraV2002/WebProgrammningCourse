@@ -1,11 +1,11 @@
 # Homework 1: Formula Calculator
 
 ## Overview
-This project is a web-based formula calculator designed to calculate various financial metrics based on user inputs. The application comprises three main files: `index.html`, `style.css`, and `script.js`.
+This project is a web-based formula calculator designed to calculate various financial metrics based on user inputs. The application comprises three main files: `hw1.html`, `style.css`, and `script.js`.
 
 ## Files and Their Roles
 
-### index.html
+### hw1.html
 This file is the main HTML document that structures the web page. It includes a container for the calculator and links to the necessary CSS and JavaScript files.
 
 ```
