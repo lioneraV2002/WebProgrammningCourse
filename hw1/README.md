@@ -178,8 +178,8 @@ class FormulaCalculator {
         // Formula Element
         const formulaElement = document.createElement('formula');
         formulaElement.setAttribute('evaluator', section.formula);
-        formulaElement.setAttribute('placeholder', section.formulaPlaceholder);
-        formulaElement.textContent = section.formulaPlaceholder;
+        formulaElement.setAttribute('placeholder', section.formula);
+        formulaElement.textContent = section.formula;
 
         const resultSpan = document.createElement('span');
         resultSpan.className = 'result';
@@ -249,9 +249,22 @@ class FormulaCalculator {
 // Configuration for Sections
 const sections = [
     {
+        // test for valid formula
         title: 'Total Cost with Flat Discount (Set 1)',
         formula: 'fee * count - discount',
-        formulaPlaceholder: 'fee * count - discount'
+
+    },
+    {
+        // test for invalid formula based on tag
+        title: 'Total Cost with Flat Discount (Set 2)',
+        formula: 'fee * count - tag',
+
+    },
+    {
+        // test for any other formula except for the valid one
+        title: 'Total Cost with Flat Discount (Set 3)',
+        formula: 'fee * count + discount',
+
     },
     // Add more sections as needed
 ];
