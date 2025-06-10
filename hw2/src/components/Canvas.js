@@ -1,16 +1,23 @@
 import React from 'react';
 
-const Canvas = ({ canvasRef, shapes, handleCanvasClick, handleShapeDoubleClick }) => {
+const Canvas = ({ canvasRef, shapes, handleCanvasClick, handleShapeDoubleClick, handleDrop }) => {
     return (
-        <main className="flex-1 bg-gray-100 relative border-r-2 border-gray-300 p-4">
+        <main
+            className="flex-1 bg-gray-100 relative border-r-2 border-gray-300 p-4"
+            onClick={handleCanvasClick} // Move click handler to main container
+        >
             <canvas
                 ref={canvasRef}
-                width={window.innerWidth - 100} // Adjusted for sidebar and padding
-                height={window.innerHeight - 200} // Adjusted for header, footer, and padding
+                width="100%"
+                height="100%"
                 className="absolute top-0 left-0"
-                onClick={handleCanvasClick}
+                onDragOver={(e) => e.preventDefault()} // Allow drop on canvas
             ></canvas>
-            <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
+            <svg
+                className="absolute top-0 left-0 w-full h-full"
+                onDragOver={(e) => e.preventDefault()} // Allow drop on SVG
+                onDrop={handleDrop}
+            >
                 {shapes.map((shape) => (
                     <g
                         key={shape.id}

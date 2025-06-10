@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import Header from "./components/Header";
+import Header from './components/Header';
 import Canvas from './components/Canvas';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
@@ -16,6 +16,7 @@ const App = () => {
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
+        console.log("Canvas clicked at:", x, y, "with selectedShape:", selectedShape); // Debug log
         const newShape = {
             id: Date.now(),
             type: selectedShape,
@@ -24,7 +25,7 @@ const App = () => {
             size: 50,
         };
         setShapes([...shapes, newShape]);
-        setSelectedShape(null);
+        setSelectedShape(null); // Clear selection after placing
     };
 
     const handleShapeDoubleClick = (id) => {
@@ -70,21 +71,37 @@ const App = () => {
         { square: 0, circle: 0, triangle: 0 }
     );
 
+    const handleDrop = (e) => {
+        e.preventDefault();
+        const shapeType = e.dataTransfer.getData('text/plain');
+        const svg = e.currentTarget;
+        const rect = svg.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const newShape = {
+            id: Date.now(),
+            type: shapeType,
+            x,
+            y,
+            size: 50,
+        };
+        setShapes([...shapes, newShape]);
+    };
+
     return (
         <div className="flex flex-col h-screen">
             <Header title={title} setTitle={setTitle} handleExport={handleExport} handleImport={handleImport} />
             <div className="flex flex-1">
-                <div className="flex-1 flex flex-col">
-                    <Canvas
-                        canvasRef={canvasRef}
-                        shapes={shapes}
-                        handleCanvasClick={handleCanvasClick}
-                        handleShapeDoubleClick={handleShapeDoubleClick}
-                    />
-                    <Footer shapeCounts={shapeCounts} />
-                </div>
+                <Canvas
+                    canvasRef={canvasRef}
+                    shapes={shapes}
+                    handleCanvasClick={handleCanvasClick}
+                    handleShapeDoubleClick={handleShapeDoubleClick}
+                    handleDrop={handleDrop}
+                />
                 <Sidebar selectedShape={selectedShape} setSelectedShape={setSelectedShape} />
             </div>
+            <Footer shapeCounts={shapeCounts} />
         </div>
     );
 };
