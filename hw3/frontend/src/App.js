@@ -3,13 +3,14 @@ import Header from './components/Header';
 import Canvas from './components/Canvas';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
-import { createShape, getShapeCounts } from './utils/shapeUtils';
-import { saveAs } from 'file-saver';
+import { createShape, getShapeCounts, exportCanvas, importCanvas } from './utils/shapeUtils';
 
 const App = () => {
     const [title, setTitle] = useState('Painting Title');
     const [shapes, setShapes] = useState([]);
     const [selectedShape, setSelectedShape] = useState(null);
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [paintingId, setPaintingId] = useState(null); // Track current painting ID
     const canvasRef = useRef(null);
 
     const handleCanvasClick = (e) => {
@@ -26,26 +27,10 @@ const App = () => {
         setShapes(shapes.filter((shape) => shape.id !== id));
     };
 
-    const handleExport = () => {
-        const data = { title, shapes, timestamp: new Date().toISOString() };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        saveAs(blob, `${title}.json`); // Using file-saver
-    };
-
-    const handleImport = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const data = JSON.parse(event.target.result);
-                setTitle(data.title || 'Imported Picture');
-                setShapes(data.shapes || []);
-            } catch (error) {
-                alert('Invalid JSON file');
-            }
-        };
-        reader.readAsText(file);
+    const handleExport = () => exportCanvas(title, shapes, paintingId, setPaintingId);
+    const handleImport = (id) => {
+        importCanvas(id, setTitle, setShapes, setPaintingId);
+        setShowImportModal(false);
     };
 
     const handleDrop = (e) => {
@@ -60,7 +45,16 @@ const App = () => {
 
     return (
         <div className="flex flex-col h-screen">
-            <Header title={title} setTitle={setTitle} onExport={handleExport} onImport={handleImport} />
+            <Header
+                title={title}
+                setTitle={setTitle}
+                onExport={handleExport}
+                onImport={handleImport}
+                showImportModal={showImportModal}
+                setShowImportModal={setShowImportModal}
+                paintingId={paintingId}
+                setPaintingId={setPaintingId}
+            />
             <div className="flex flex-1">
                 <Canvas
                     canvasRef={canvasRef}

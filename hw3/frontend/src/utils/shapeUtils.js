@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { SHAPE_TYPES, DEFAULT_SHAPE_SIZE } from './constants';
 
 export const createShape = (type, x, y) => ({
@@ -55,5 +56,59 @@ export const renderShape = (shape, onDoubleClick) => {
             );
         default:
             return null;
+    }
+};
+
+export const exportCanvas = async (title, shapes, paintingId, setPaintingId) => {
+    try {
+        if (!title.trim()) {
+            alert('Title cannot be empty');
+            return;
+        }
+        if (!Array.isArray(shapes)) {
+            alert('Invalid shapes data');
+            return;
+        }
+        const payload = { title, shapes: JSON.stringify(shapes) };
+        let response;
+        if (paintingId) {
+            // Update existing painting
+            response = await axios.put(`http://localhost:8080/api/paintings/${paintingId}`, payload);
+        } else {
+            // Create new painting
+            response = await axios.post('http://localhost:8080/api/paintings', payload);
+        }
+        if (response.data && response.data.id) {
+            setPaintingId(response.data.id); // Update paintingId for future updates
+            alert(`Painting ${paintingId ? 'updated' : 'saved'} with ID: ${response.data.id}`);
+        } else {
+            alert('Failed to save painting: No ID returned');
+        }
+    } catch (error) {
+        alert(`Failed to ${paintingId ? 'update' : 'save'} painting`);
+        console.error(error);
+    }
+};
+
+export const importCanvas = async (id, setTitle, setShapes, setPaintingId) => {
+    try {
+        const response = await axios.get(`http://localhost:8080/api/paintings/${id}`);
+        const { title, shapes, id: paintingId } = response.data;
+        setTitle(title || 'Imported Picture');
+        setShapes(JSON.parse(shapes) || []);
+        setPaintingId(paintingId); // Set the painting ID
+    } catch (error) {
+        alert('Failed to load painting');
+        console.error(error);
+    }
+};
+
+export const fetchPaintings = async () => {
+    try {
+        const response = await axios.get('http://localhost:8080/api/paintings');
+        return response.data || [];
+    } catch (error) {
+        console.error('Failed to fetch paintings:', error);
+        throw error;
     }
 };
