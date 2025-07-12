@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: 'docker.arvancloud.ir/postgres:16'
+    environment:
+      - 'POSTGRES_DB=painting_db'
+      - 'POSTGRES_PASSWORD=pass'
+      - 'POSTGRES_USER=user'
+    ports:
+      - '5432:5432'
+    volumes:
+      - 'painting_data:/var/lib/postgresql/data'
+
+volumes:
+  painting_data:
