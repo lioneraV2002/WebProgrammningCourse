@@ -59,7 +59,7 @@ export const renderShape = (shape, onDoubleClick) => {
     }
 };
 
-export const exportCanvas = async (title, shapes, paintingId, setPaintingId) => {
+export const exportCanvas = async (title, shapes, paintingId, setPaintingId, token) => {
     try {
         if (!title.trim()) {
             alert('Title cannot be empty');
@@ -70,16 +70,15 @@ export const exportCanvas = async (title, shapes, paintingId, setPaintingId) => 
             return;
         }
         const payload = { title, shapes: JSON.stringify(shapes) };
+        const config = { headers: { Authorization: `Bearer ${token}` } };
         let response;
         if (paintingId) {
-            // Update existing painting
-            response = await axios.put(`http://localhost:8080/api/paintings/${paintingId}`, payload);
+            response = await axios.put(`http://localhost:8080/api/paintings/${paintingId}`, payload, config);
         } else {
-            // Create new painting
-            response = await axios.post('http://localhost:8080/api/paintings', payload);
+            response = await axios.post('http://localhost:8080/api/paintings', payload, config);
         }
         if (response.data && response.data.id) {
-            setPaintingId(response.data.id); // Update paintingId for future updates
+            setPaintingId(response.data.id);
             alert(`Painting ${paintingId ? 'updated' : 'saved'} with ID: ${response.data.id}`);
         } else {
             alert('Failed to save painting: No ID returned');
@@ -90,22 +89,24 @@ export const exportCanvas = async (title, shapes, paintingId, setPaintingId) => 
     }
 };
 
-export const importCanvas = async (id, setTitle, setShapes, setPaintingId) => {
+export const importCanvas = async (id, setTitle, setShapes, setPaintingId, token) => {
     try {
-        const response = await axios.get(`http://localhost:8080/api/paintings/${id}`);
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const response = await axios.get(`http://localhost:8080/api/paintings/${id}`, config);
         const { title, shapes, id: paintingId } = response.data;
         setTitle(title || 'Imported Picture');
         setShapes(JSON.parse(shapes) || []);
-        setPaintingId(paintingId); // Set the painting ID
+        setPaintingId(paintingId);
     } catch (error) {
         alert('Failed to load painting');
         console.error(error);
     }
 };
 
-export const fetchPaintings = async () => {
+export const fetchPaintings = async (token) => {
     try {
-        const response = await axios.get('http://localhost:8080/api/paintings');
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const response = await axios.get('http://localhost:8080/api/paintings', config);
         return response.data || [];
     } catch (error) {
         console.error('Failed to fetch paintings:', error);

@@ -1,17 +1,22 @@
-import React, { useState, useRef } from 'react';
+import React, {useState, useRef, useContext} from 'react';
+import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
 import Header from './components/Header';
 import Canvas from './components/Canvas';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
-import { createShape, getShapeCounts, exportCanvas, importCanvas } from './utils/shapeUtils';
+import Login from './components/Login';
+import Register from './components/Register';
+import {AuthContext, AuthProvider} from './context/AuthContext';
+import {createShape, getShapeCounts, exportCanvas, importCanvas} from './utils/shapeUtils';
 
-const App = () => {
+const PaintingApp = () => {
     const [title, setTitle] = useState('Painting Title');
     const [shapes, setShapes] = useState([]);
     const [selectedShape, setSelectedShape] = useState(null);
     const [showImportModal, setShowImportModal] = useState(false);
-    const [paintingId, setPaintingId] = useState(null); // Track current painting ID
+    const [paintingId, setPaintingId] = useState(null);
     const canvasRef = useRef(null);
+    const {token} = useContext(AuthContext);
 
     const handleCanvasClick = (e) => {
         if (!selectedShape) return;
@@ -27,9 +32,9 @@ const App = () => {
         setShapes(shapes.filter((shape) => shape.id !== id));
     };
 
-    const handleExport = () => exportCanvas(title, shapes, paintingId, setPaintingId);
+    const handleExport = () => exportCanvas(title, shapes, paintingId, setPaintingId, token);
     const handleImport = (id) => {
-        importCanvas(id, setTitle, setShapes, setPaintingId);
+        importCanvas(id, setTitle, setShapes, setPaintingId, token);
         setShowImportModal(false);
     };
 
@@ -63,11 +68,36 @@ const App = () => {
                     onShapeDoubleClick={handleShapeDoubleClick}
                     onDrop={handleDrop}
                 />
-                <Sidebar selectedShape={selectedShape} setSelectedShape={setSelectedShape} />
+                <Sidebar selectedShape={selectedShape} setSelectedShape={setSelectedShape}/>
             </div>
-            <Footer shapeCounts={getShapeCounts(shapes)} />
+            <Footer shapeCounts={getShapeCounts(shapes)}/>
         </div>
     );
 };
+
+const ProtectedRoute = ({children}) => {
+    const {token} = useContext(AuthContext);
+    return token ? children : <Navigate to="/login"/>;
+};
+
+const App = () => (
+    <Router>
+        <AuthProvider>
+            <Routes>
+                <Route path="/login" element={<Login/>}/>
+                <Route path="/register" element={<Register/>}/>
+                <Route
+                    path="/app"
+                    element={
+                        <ProtectedRoute>
+                            <PaintingApp/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route path="/" element={<Navigate to="/login"/>}/>
+            </Routes>
+        </AuthProvider>
+    </Router>
+);
 
 export default App;

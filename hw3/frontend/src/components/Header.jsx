@@ -1,15 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import { fetchPaintings } from '../utils/shapeUtils';
 
 const Header = ({ title, setTitle, onExport, onImport, showImportModal, setShowImportModal, paintingId, setPaintingId }) => {
     const [paintings, setPaintings] = useState([]);
+    const { token, logout } = useContext(AuthContext);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (showImportModal) {
-            fetchPaintings().then(setPaintings).catch(() => alert('Failed to load paintings'));
+            fetchPaintings(token).then(setPaintings).catch(() => alert('Failed to load paintings'));
         }
-    }, [showImportModal]);
+    }, [showImportModal, token]);
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     return (
         <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
@@ -32,6 +41,12 @@ const Header = ({ title, setTitle, onExport, onImport, showImportModal, setShowI
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 >
                     Import
+                </button>
+                <button
+                    onClick={handleLogout}
+                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                >
+                    Logout
                 </button>
             </div>
 
